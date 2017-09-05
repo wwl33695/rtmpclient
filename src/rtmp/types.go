@@ -114,6 +114,7 @@ type RTMPClient struct {
 
     times int
     chunklen uint32
+    avccmediaheaderlen uint8
     adts *AdtsInfo
 
     //debug

@@ -227,8 +227,8 @@ func (self *RTMPClient) HandleVideoData(msg *RTMPMessage) error{
 
         var i uint32 = 5
         for i < uint32(len(buf)) {
-            framelength := binary.BigEndian.Uint32(buf[i:i+4])
-            i+=4
+            framelength := binary.BigEndian.Uint32(buf[i:i+uint32(self.avccmediaheaderlen)])
+            i+=uint32(self.avccmediaheaderlen)
 
             self.file264.Write(h264startcode)
             self.file264.Write(buf[i:i+framelength])                
@@ -244,6 +244,8 @@ func (self *RTMPClient) HandleVideoData(msg *RTMPMessage) error{
         data := buf[5:]
         profile := data[1]
         levelid := data[3]
+        self.avccmediaheaderlen = (data[4]&0x03)+1
+        println("self.avccmediaheaderlen", self.avccmediaheaderlen)
         numSps := data[5] & 0x1f
         spsLen := (uint(data[6]))<<8 + uint(data[7])
         sps := data[8 : 8+spsLen]
@@ -276,6 +278,7 @@ func (self *RTMPClient) HandleAudioData(msg *RTMPMessage) error{
     if buf[0] == 0xaf {
         if buf[1] == 0x00 {
             self.adts = NewAdts(buf[2:4])
+            println("aac config buf", len(buf))
         } else {
             data := buf[2:]
             blen := uint32(len(data))
